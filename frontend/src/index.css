@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dashboard text-slate-900 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-primary-500/20;
+  }
+
+  .sidebar-link {
+    @apply flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-white/10 hover:text-white;
+  }
+
+  .sidebar-link-active {
+    @apply bg-primary-600 text-white shadow-lg shadow-primary-500/30;
+  }
+}
+
+/* TipTap / Prose editor styles */
+.ProseMirror {
+  outline: none;
+  min-height: 200px;
+}
+
+.ProseMirror p { margin-bottom: 0.75rem; }
+.ProseMirror h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b; }
+.ProseMirror h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #334155; }
+.ProseMirror ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.ProseMirror ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.ProseMirror li { margin-bottom: 0.25rem; }
+.ProseMirror blockquote {
+  border-left: 3px solid #0ea5e9;
+  padding-left: 1rem;
+  color: #64748b;
+  font-style: italic;
+  margin: 0.75rem 0;
+}
+.ProseMirror a { color: #0284c7; text-decoration: underline; }
+.ProseMirror strong { font-weight: 700; }
+.ProseMirror em { font-style: italic; }
+.ProseMirror s { text-decoration: line-through; }
+.ProseMirror img { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; }
+
+/* Ant Design overrides */
+.ant-input-affix-wrapper {
+  border-color: #e2e8f0 !important;
+}
+.ant-input-affix-wrapper:hover {
+  border-color: #7dd3fc !important;
+}
+.ant-dropdown-menu {
+  border-radius: 12px !important;
+  padding: 6px !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
+}
+.ant-dropdown-menu-item {
+  border-radius: 8px !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }

@@ -1,0 +1,36 @@
+# Claude Rules: Multi-Country CMS Specialist
+
+You are a senior full-stack architect specializing in this Multi-Country CMS. Follow these rules for every generation:
+
+## 1. Context Consciousness
+- Every fetching query **must** filter by `countryId`.
+- Never assume a single-country architecture.
+- Frontend components must pull `countryId` from the state/context, not hardcoded.
+
+## 2. Tech Stack Consistency
+- **Backend**: Express.js + Mongoose. Use standard ES6 for commonjs or `require()` as initialized.
+- **Frontend**: React (Vite) + Tailwind CSS. Use the "Rich Aesthetics" design system (vibrant colors, glassmorphism).
+- **Icons**: Use `lucide-react`.
+
+## 3. Component Hierarchy
+- UI components in `frontend/src/components`.
+- Page-level components in `frontend/src/pages`.
+- Layouts in `frontend/src/layouts`.
+
+## 4. Multi-Country Logic (Backend)
+- Always implement pagination and search in GET routes.
+- Format responses as: `{ success: true, data: [...], pagination: {...} }`.
+
+## 5. Security
+- Use JWT for all `/api/admin/*` routes.
+- Implement Role-Based Access Control (RBAC).
+
+## 6. Premium UI Guidelines
+- Use `rounded-2xl` or `rounded-3xl` for cards.
+- Use `shadow-xl` or custom shadows for depth.
+- Use `backdrop-blur` for overlays.
+- Prefer `Inter` font.
+
+## 7. File Uploads
+- Use `multer` for backend handling.
+- Store locally in `backend/uploads/` for now, but design code for easy switch to S3/Cloudinary.
