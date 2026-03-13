@@ -1,0 +1,17 @@
+{
+  "name": "inxt-admin",
+  "version": "1.0.0",
+  "description": "INXT Admin - CMS with frontend and backend",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cd backend && NODE_ENV=production node server.js",
+    "build": "npm run build:frontend",
+    "deploy": "npm run build && npm start"
+  },
+  "keywords": [],
+  "license": "ISC"
+}
