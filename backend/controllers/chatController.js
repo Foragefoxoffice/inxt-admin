@@ -75,10 +75,10 @@ exports.chat = async (req, res) => {
       score: cosineSimilarity(questionEmbedding, doc.embedding)
     }));
 
-    const THRESHOLD = 0.3;
+    const THRESHOLD = 0.2; // Lowered from 0.3 to be more inclusive (OpenAI specific)
     const limit = Math.min(topK, 5);
 
-    // Manual content (ChatContent) has priority over CMS content
+    // Filter and sort
     const manualChunks = scored
       .filter((c) => c.sourceModel === 'ChatContent' && c.score > THRESHOLD)
       .sort((a, b) => b.score - a.score)
@@ -91,6 +91,12 @@ exports.chat = async (req, res) => {
 
     // Combine: manual first, then CMS to fill remaining slots
     const topChunks = [...manualChunks, ...cmsChunks];
+
+    // Debug logging for threshold issues
+    if (scored.length > 0) {
+      const topScored = scored.sort((a, b) => b.score - a.score).slice(0, 3);
+      console.log(`[Chat] Search for "${message.slice(0, 30)}...": Found ${topChunks.length}/${candidates.length} above ${THRESHOLD}. Top score: ${topScored[0]?.score.toFixed(4)} (${topScored[0]?.title})`);
+    }
 
     if (topChunks.length === 0) {
       return sendSuccess(res, {
