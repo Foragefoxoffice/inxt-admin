@@ -1,9 +1,11 @@
 const http = require('http');
 
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'localhost';
+// Strip protocol prefix if present — http.request() needs a bare hostname
+const RAW_HOST = process.env.OLLAMA_HOST || 'localhost';
+const OLLAMA_HOST = RAW_HOST.replace(/^https?:\/\//, '');
 const OLLAMA_PORT = process.env.OLLAMA_PORT || 11434;
 const EMBED_MODEL = process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text';
-const CHAT_MODEL = process.env.OLLAMA_CHAT_MODEL || 'phi3:mini';
+const CHAT_MODEL = process.env.OLLAMA_CHAT_MODEL || 'tinyllama:latest';
 
 /**
  * Low-level HTTP POST to Ollama (no external dependencies required).
