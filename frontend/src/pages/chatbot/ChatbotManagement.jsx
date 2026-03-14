@@ -16,6 +16,7 @@ const MODEL_COLORS = {
   News: 'bg-violet-50 text-violet-700 border-violet-200',
   Career: 'bg-amber-50 text-amber-700 border-amber-200'
 };
+const MODEL_LABELS = { Blog: 'Blogs', News: 'News', Career: 'Careers' };
 
 const StatCard = ({ icon: Icon, label, value, sub, color = 'text-slate-700' }) => (
   <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -333,7 +334,7 @@ const ChatbotManagement = () => {
           <StatCard
             icon={Bot}
             label="Chat Model"
-            value="phi3:mini"
+            value={stats?.ollama?.models?.find(m => !m.includes('embed'))?.split(':').slice(0, 2).join(':') || '—'}
             sub="via Ollama local"
             color="text-primary-600"
           />
@@ -441,7 +442,7 @@ const ChatbotManagement = () => {
                   {isRunning ? <Loader2 size={16} className="animate-spin" /> : <Icon size={16} />}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">{model}s</p>
+                  <p className="text-sm font-semibold">{MODEL_LABELS[model]}</p>
                   <p className="text-xs opacity-70">{isRunning ? 'Indexing…' : 'Re-embed all published'}</p>
                 </div>
               </button>
