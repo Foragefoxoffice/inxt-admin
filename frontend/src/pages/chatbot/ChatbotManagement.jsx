@@ -281,7 +281,7 @@ const ChatbotManagement = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">AI Chatbot</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage knowledge base and test the Ollama-powered chatbot
+            Manage knowledge base and test the AI-powered chatbot
           </p>
         </div>
         <div className="flex gap-3">

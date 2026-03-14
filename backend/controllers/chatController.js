@@ -40,7 +40,7 @@ exports.chat = async (req, res) => {
     } catch (err) {
       return res.status(503).json({
         success: false,
-        message: 'AI service unavailable. Please ensure Ollama is running.',
+        message: `AI service unavailable. Please check your ${PROVIDER_NAME} connection.`,
         detail: err.message
       });
     }
@@ -135,7 +135,7 @@ ${contextBlock}`;
     } catch (err) {
       return res.status(503).json({
         success: false,
-        message: 'AI generation failed. Please ensure Ollama is running with phi3.',
+        message: `AI generation failed. Please check your ${PROVIDER_NAME} configuration.`,
         detail: err.message
       });
     }
