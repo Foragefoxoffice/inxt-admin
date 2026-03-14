@@ -8,7 +8,7 @@
  */
 
 const KnowledgeBase = require('../models/KnowledgeBase');
-const { generateEmbedding, stripHtml, extractTextFromBlocks } = require('./ollamaService');
+const { generateEmbedding, stripHtml, extractTextFromBlocks } = require('./aiProvider');
 
 /**
  * Extract combined plain-text content from a CMS document.

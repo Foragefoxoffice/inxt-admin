@@ -33,14 +33,14 @@ const StatCard = ({ icon: Icon, label, value, sub, color = 'text-slate-700' }) =
   </div>
 );
 
-const OllamaStatusCard = ({ ollama }) => {
-  if (!ollama) return <StatCard icon={Activity} label="Ollama Status" value="—" />;
-  const { available, models = [], missing = [] } = ollama;
+const AIStatusCard = ({ health, provider }) => {
+  if (!health) return <StatCard icon={Activity} label={`${provider || 'AI'} Status`} value="—" />;
+  const { available, models = [], missing = [] } = health;
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Ollama Status</p>
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{provider} Status</p>
           <div className="flex items-center gap-2">
             {available ? (
               <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -56,15 +56,15 @@ const OllamaStatusCard = ({ ollama }) => {
           <Activity className="w-5 h-5 text-slate-500" />
         </div>
       </div>
-      <div className="space-y-1">
+      <div className="flex flex-wrap gap-1">
         {models.slice(0, 3).map((m) => (
-          <span key={m} className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 mr-1">
-            <CheckCircle className="w-3 h-3" /> {m}
+          <span key={m} className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">
+            <CheckCircle className="w-2.5 h-2.5" /> {m}
           </span>
         ))}
         {missing.map((m) => (
-          <span key={m} className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded-full px-2 py-0.5 mr-1">
-            <AlertCircle className="w-3 h-3" /> {m} missing
+          <span key={m} className="inline-flex items-center gap-1 text-[10px] bg-red-50 text-red-700 border border-red-200 rounded-full px-2 py-0.5">
+            <AlertCircle className="w-2.5 h-2.5" /> {m}
           </span>
         ))}
       </div>
@@ -316,7 +316,7 @@ const ChatbotManagement = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <OllamaStatusCard ollama={stats?.ollama} />
+          <AIStatusCard health={stats?.ollama} provider={stats?.provider} />
           <StatCard
             icon={Database}
             label="Total Indexed"
@@ -334,8 +334,8 @@ const ChatbotManagement = () => {
           <StatCard
             icon={Bot}
             label="Chat Model"
-            value={stats?.ollama?.models?.find(m => !m.includes('embed'))?.split(':').slice(0, 2).join(':') || '—'}
-            sub="via Ollama local"
+            value={stats?.ollama?.models?.find(m => (!m.includes('embed') && !m.includes('nomic')) )?.split(':').slice(0, 2).join(':') || '—'}
+            sub={`via ${stats?.provider || 'AI'} provider`}
             color="text-primary-600"
           />
         </div>
@@ -480,13 +480,20 @@ const ChatbotManagement = () => {
       {/* How it works */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
         <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-          <AlertCircle size={15} className="text-slate-400" /> How It Works
+          <AlertCircle size={15} className="text-amber-500" /> Provider Notes
         </h3>
+        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-xs text-amber-800 font-medium">
+            ⚠️ Switching between Ollama and OpenAI? You MUST click "Reindex All" below. 
+            OpenAI vectors (1536d) are incompatible with Ollama vectors (768d). 
+            If vectors don't match, similarity search will fail.
+          </p>
+        </div>
         <ol className="space-y-2 text-xs text-slate-600">
-          <li className="flex gap-2"><span className="font-bold text-primary-600">1.</span> When you publish a Blog, News, or Career post, it's automatically embedded using <strong>nomic-embed-text</strong> and stored in the knowledge base.</li>
-          <li className="flex gap-2"><span className="font-bold text-primary-600">2.</span> When a user asks a question, the query is embedded and compared (cosine similarity) to find the most relevant content chunks.</li>
-          <li className="flex gap-2"><span className="font-bold text-primary-600">3.</span> The top matching chunks are sent as context to <strong>phi3:mini</strong>, which generates a grounded answer.</li>
-          <li className="flex gap-2"><span className="font-bold text-primary-600">4.</span> The chatbot widget (bottom-right corner) or the embeddable widget (<code className="bg-slate-200 px-1 rounded">chatbot-widget.js</code>) can be used anywhere.</li>
+          <li className="flex gap-2"><span className="font-bold text-primary-600">1.</span> Active Provider: <strong>{stats?.provider || 'Loading...'}</strong> (Set via <code className="bg-slate-200 px-1 rounded">AI_PROVIDER</code> in .env).</li>
+          <li className="flex gap-2"><span className="font-bold text-primary-600">2.</span> When you publish content, it's embedded using the active provider ({stats?.ollama?.models?.find(m => m.includes('embed')) || 'embedding model'}) and stored in the knowledge base.</li>
+          <li className="flex gap-2"><span className="font-bold text-primary-600">3.</span> User questions are compared (cosine similarity) against the knowledge base to find relevant context.</li>
+          <li className="flex gap-2"><span className="font-bold text-primary-600">4.</span> Context is sent to the chat model ({stats?.ollama?.models?.find(m => !m.includes('embed')) || 'chat model'}) to generate a grounded, factual answer.</li>
         </ol>
       </div>
     </div>

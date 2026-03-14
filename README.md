@@ -66,16 +66,39 @@ In production, the Express server serves:
 - `/uploads/*` → Static uploaded files
 - `/*` → Frontend SPA (from `frontend/dist/`)
 
-Everything runs under a **single port** (default: `5002`).
+Everything runs under a **single port** (default: `5006`).
+
+## AI Chatbot & Knowledge Base
+
+The system supports two AI providers:
+- **Ollama (Default/Local)**: Runs locally on your server/machine.
+- **OpenAI (Cloud)**: Uses the OpenAI API for embeddings and chat.
+
+### Switching Providers
+1. Edit `backend/.env` and change `AI_PROVIDER` to `openai` or `ollama`.
+2. **IMPORTANT**: If you switch providers, you **MUST** use the "Reindex All" button in the Chatbot Management panel. OpenAI and Ollama use different vector dimensions; mixing them will break the search functionality.
 
 ## Environment Variables
 
 Create `backend/.env`:
 
 ```env
-PORT=5002
+PORT=5006
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
-JWT_EXPIRE=7d
 NODE_ENV=development
+
+# AI Provider: 'ollama' or 'openai'
+AI_PROVIDER=openai
+
+# OpenAI Config
+OPENAI_API_KEY=your_key_here
+OPENAI_EMBED_MODEL=text-embedding-3-small
+OPENAI_CHAT_MODEL=gpt-4o-mini
+
+# Ollama Config
+OLLAMA_HOST=127.0.0.1
+OLLAMA_PORT=11434
+OLLAMA_EMBED_MODEL=nomic-embed-text
+OLLAMA_CHAT_MODEL=tinyllama:latest
 ```

@@ -1,5 +1,5 @@
 const KnowledgeBase = require('../models/KnowledgeBase');
-const { generateEmbedding, generateChatResponse, cosineSimilarity, checkOllamaHealth } = require('../services/ollamaService');
+const { generateEmbedding, generateChatResponse, cosineSimilarity, checkHealth, PROVIDER_NAME } = require('../services/aiProvider');
 const { sendSuccess, sendError } = require('../utils/helpers');
 
 // Language name map for the system prompt
@@ -195,7 +195,7 @@ exports.reindex = async (req, res) => {
  */
 exports.health = async (req, res) => {
   try {
-    const health = await checkOllamaHealth();
+    const health = await checkHealth();
     const kbCount = await KnowledgeBase.countDocuments();
     const langBreakdown = await KnowledgeBase.aggregate([
       { $group: { _id: '$language', count: { $sum: 1 } } },
@@ -203,7 +203,8 @@ exports.health = async (req, res) => {
     ]);
 
     sendSuccess(res, {
-      ollama: health,
+      ollama: health, // Kept "ollama" key for frontend compatibility, but value is from active provider
+      provider: PROVIDER_NAME,
       knowledgeBase: { total: kbCount, byLanguage: langBreakdown }
     });
   } catch (err) {
@@ -218,7 +219,7 @@ exports.health = async (req, res) => {
  */
 exports.getStats = async (req, res) => {
   try {
-    const health = await checkOllamaHealth();
+    const health = await checkHealth();
     const kbTotal = await KnowledgeBase.countDocuments();
 
     // Breakdown by language × sourceModel
@@ -247,6 +248,7 @@ exports.getStats = async (req, res) => {
 
     sendSuccess(res, {
       ollama: health,
+      provider: PROVIDER_NAME,
       knowledgeBase: { total: kbTotal, byLanguage, byLanguageAndModel }
     });
   } catch (err) {
