@@ -19,7 +19,7 @@
  *   - PROVIDER_NAME
  */
 
-const AI_PROVIDER = (process.env.AI_PROVIDER || 'ollama').toLowerCase();
+const AI_PROVIDER = (process.env.AI_PROVIDER || 'ollama').trim().toLowerCase();
 
 // Import provider-specific modules
 const ollamaService = require('./ollamaService');

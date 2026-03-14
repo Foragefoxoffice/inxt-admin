@@ -8,9 +8,10 @@
 
 const https = require('https');
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-const OPENAI_EMBED_MODEL = process.env.OPENAI_EMBED_MODEL || 'text-embedding-3-small';
-const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
+// Support both 'sk-...' and ' sk-...' by trimming leading/trailing whitespace
+const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim();
+const OPENAI_EMBED_MODEL = (process.env.OPENAI_EMBED_MODEL || 'text-embedding-3-small').trim();
+const OPENAI_CHAT_MODEL = (process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini').trim();
 
 /**
  * Low-level HTTPS POST to the OpenAI API.

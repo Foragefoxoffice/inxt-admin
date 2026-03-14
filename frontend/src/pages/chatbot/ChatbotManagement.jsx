@@ -35,7 +35,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color = 'text-slate-700' }) =
 
 const AIStatusCard = ({ health, provider }) => {
   if (!health) return <StatCard icon={Activity} label={`${provider || 'AI'} Status`} value="—" />;
-  const { available, models = [], missing = [] } = health;
+  const { available, models = [], missing = [], error } = health;
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
       <div className="flex items-start justify-between mb-3">
@@ -56,12 +56,13 @@ const AIStatusCard = ({ health, provider }) => {
           <Activity className="w-5 h-5 text-slate-500" />
         </div>
       </div>
+      {error && <p className="text-[10px] text-red-500 mb-2 truncate" title={error}>{error}</p>}
       <div className="flex flex-wrap gap-1">
-        {models.slice(0, 3).map((m) => (
+        {models.length > 0 ? models.slice(0, 3).map((m) => (
           <span key={m} className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">
             <CheckCircle className="w-2.5 h-2.5" /> {m}
           </span>
-        ))}
+        )) : !available && <span className="text-[10px] text-slate-400 italic">No models found</span>}
         {missing.map((m) => (
           <span key={m} className="inline-flex items-center gap-1 text-[10px] bg-red-50 text-red-700 border border-red-200 rounded-full px-2 py-0.5">
             <AlertCircle className="w-2.5 h-2.5" /> {m}
@@ -110,7 +111,9 @@ const TestChatPanel = ({ defaultLanguage }) => {
         timestamp: new Date()
       }]);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reach the AI service.');
+      const msg = err.response?.data?.message || 'Failed to reach the AI service.';
+      const detail = err.response?.data?.detail;
+      setError(detail ? `${msg} (${detail})` : msg);
     } finally {
       setLoading(false);
     }
