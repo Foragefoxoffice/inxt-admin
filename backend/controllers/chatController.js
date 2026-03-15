@@ -1,6 +1,12 @@
 const KnowledgeBase = require('../models/KnowledgeBase');
+const ChatbotSettings = require('../models/ChatbotSettings');
 const { generateEmbedding, generateChatResponse, cosineSimilarity, checkHealth, PROVIDER_NAME } = require('../services/aiProvider');
 const { sendSuccess, sendError } = require('../utils/helpers');
+
+const getContactInfo = async () => {
+  const settings = await ChatbotSettings.findOne().lean();
+  return settings || {};
+};
 
 // Language name map for the system prompt
 const LANGUAGE_NAMES = {
@@ -53,19 +59,24 @@ exports.chat = async (req, res) => {
     ).lean();
 
     if (candidates.length === 0) {
+      const contact = await getContactInfo();
       // Fallback: try to find any content if no language match
       const anyContent = await KnowledgeBase.countDocuments();
       if (anyContent === 0) {
         return sendSuccess(res, {
           response: "I don't have any knowledge base content yet. Please add some content to the CMS first.",
           sources: [],
-          language
+          language,
+          noResults: true,
+          contact
         });
       }
       return sendSuccess(res, {
         response: `I don't have content in the requested language (${LANGUAGE_NAMES[language] || language}) yet.`,
         sources: [],
-        language
+        language,
+        noResults: true,
+        contact
       });
     }
 
@@ -99,10 +110,13 @@ exports.chat = async (req, res) => {
     }
 
     if (topChunks.length === 0) {
+      const contact = await getContactInfo();
       return sendSuccess(res, {
         response: "I couldn't find relevant information in our knowledge base to answer your question.",
         sources: [],
-        language
+        language,
+        noResults: true,
+        contact
       });
     }
 
@@ -257,6 +271,37 @@ exports.getStats = async (req, res) => {
       provider: PROVIDER_NAME,
       knowledgeBase: { total: kbTotal, byLanguage, byLanguageAndModel }
     });
+  } catch (err) {
+    sendError(res, err.message, 500);
+  }
+};
+
+/**
+ * GET /api/chat/settings
+ * Get chatbot contact settings.
+ */
+exports.getSettings = async (req, res) => {
+  try {
+    const settings = await ChatbotSettings.findOne().lean() || {};
+    sendSuccess(res, settings);
+  } catch (err) {
+    sendError(res, err.message, 500);
+  }
+};
+
+/**
+ * PUT /api/chat/settings
+ * Update chatbot contact settings. Admin only.
+ */
+exports.updateSettings = async (req, res) => {
+  try {
+    const { contactEmail, contactPhone, contactWebsite, contactLabel } = req.body;
+    const settings = await ChatbotSettings.findOneAndUpdate(
+      {},
+      { contactEmail, contactPhone, contactWebsite, contactLabel },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    sendSuccess(res, settings);
   } catch (err) {
     sendError(res, err.message, 500);
   }

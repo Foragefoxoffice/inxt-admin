@@ -109,5 +109,7 @@ export const chatAPI = {
   health: () => api.get('/chat/health'),
   stats: () => api.get('/chat/stats'),
   reindex: () => api.post('/chat/reindex'),
-  reindexModel: (model) => api.post(`/chat/reindex/${model}`)
+  reindexModel: (model) => api.post(`/chat/reindex/${model}`),
+  getSettings: () => api.get('/chat/settings'),
+  updateSettings: (data) => api.put('/chat/settings', data)
 };

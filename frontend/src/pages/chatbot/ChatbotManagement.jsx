@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot, RefreshCw, Activity, Database, Globe, CheckCircle,
   XCircle, AlertCircle, Send, Loader2, User, ChevronDown, ChevronUp,
-  FileText, Calendar, Briefcase, Zap
+  FileText, Calendar, Briefcase, Zap, Mail, Phone, ExternalLink, Save
 } from 'lucide-react';
-import { chatAPI } from '../../api/endpoints';
+import { chatAPI, languagesAPI } from '../../api/endpoints';
 import { useToast } from '../../contexts/ToastContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -80,14 +80,47 @@ const WelcomeMsg = {
   timestamp: new Date()
 };
 
+const ContactCard = ({ contact }) => {
+  const hasAny = contact?.contactEmail || contact?.contactPhone || contact?.contactWebsite;
+  if (!hasAny) return null;
+  return (
+    <div className="mt-2 bg-primary-50 border border-primary-100 rounded-xl p-3 text-xs text-slate-700 space-y-1.5">
+      <p className="font-semibold text-primary-700">{contact.contactLabel || 'Contact Us'}</p>
+      {contact.contactEmail && (
+        <a href={`mailto:${contact.contactEmail}`} className="flex items-center gap-1.5 text-primary-600 hover:underline">
+          <Mail size={12} /> {contact.contactEmail}
+        </a>
+      )}
+      {contact.contactPhone && (
+        <a href={`tel:${contact.contactPhone}`} className="flex items-center gap-1.5 text-primary-600 hover:underline">
+          <Phone size={12} /> {contact.contactPhone}
+        </a>
+      )}
+      {contact.contactWebsite && (
+        <a href={contact.contactWebsite} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary-600 hover:underline">
+          <ExternalLink size={12} /> {contact.contactWebsite}
+        </a>
+      )}
+    </div>
+  );
+};
+
 const TestChatPanel = ({ defaultLanguage }) => {
   const [messages, setMessages] = useState([WelcomeMsg]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState(defaultLanguage || 'en');
+  const [availableLanguages, setAvailableLanguages] = useState([]);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    languagesAPI.getAll().then(({ data }) => {
+      const langs = data.data || [];
+      setAvailableLanguages(Array.isArray(langs) ? langs : []);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -108,6 +141,8 @@ const TestChatPanel = ({ defaultLanguage }) => {
         role: 'assistant',
         text: data.data?.response || 'Sorry, no response.',
         sources: data.data?.sources || [],
+        noResults: data.data?.noResults || false,
+        contact: data.data?.contact || null,
         timestamp: new Date()
       }]);
     } catch (err) {
@@ -134,8 +169,8 @@ const TestChatPanel = ({ defaultLanguage }) => {
             onChange={(e) => setLanguage(e.target.value)}
             className="text-xs border border-slate-200 rounded-lg px-2 py-1 text-slate-700 focus:outline-none focus:border-primary-400"
           >
-            {['en', 'es', 'fr', 'de', 'ar', 'hi', 'zh', 'pt', 'it', 'ru', 'ja', 'ko'].map(l => (
-              <option key={l} value={l}>{l.toUpperCase()}</option>
+            {availableLanguages.map(l => (
+              <option key={l.code} value={l.code.toLowerCase()}>{l.code.toUpperCase()}</option>
             ))}
           </select>
           <button
@@ -173,6 +208,7 @@ const TestChatPanel = ({ defaultLanguage }) => {
                   ))}
                 </div>
               )}
+              {msg.noResults && msg.contact && <ContactCard contact={msg.contact} />}
             </div>
           </div>
         ))}
@@ -233,6 +269,9 @@ const ChatbotManagement = () => {
   const [reindexing, setReindexing] = useState({}); // { all: bool, Blog: bool, News: bool, Career: bool }
   const [showTest, setShowTest] = useState(true);
 
+  const [contactSettings, setContactSettings] = useState({ contactEmail: '', contactPhone: '', contactWebsite: '', contactLabel: 'Contact Us' });
+  const [savingContact, setSavingContact] = useState(false);
+
   const fetchStats = () => {
     setLoadingStats(true);
     chatAPI.stats()
@@ -241,7 +280,18 @@ const ChatbotManagement = () => {
       .finally(() => setLoadingStats(false));
   };
 
-  useEffect(() => { fetchStats(); }, []);
+  useEffect(() => {
+    fetchStats();
+    chatAPI.getSettings().then(res => {
+      const s = res.data.data || {};
+      setContactSettings({
+        contactEmail: s.contactEmail || '',
+        contactPhone: s.contactPhone || '',
+        contactWebsite: s.contactWebsite || '',
+        contactLabel: s.contactLabel || 'Contact Us',
+      });
+    }).catch(() => {});
+  }, []);
 
   const handleReindex = async (model = null) => {
     const key = model || 'all';
@@ -259,6 +309,19 @@ const ChatbotManagement = () => {
       toast.error(err.response?.data?.message || 'Reindex failed');
     } finally {
       setReindexing(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const handleContactSave = async (e) => {
+    e.preventDefault();
+    setSavingContact(true);
+    try {
+      await chatAPI.updateSettings(contactSettings);
+      toast.success('Contact settings saved');
+    } catch {
+      toast.error('Failed to save contact settings');
+    } finally {
+      setSavingContact(false);
     }
   };
 
@@ -478,6 +541,67 @@ const ChatbotManagement = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Contact Info Settings */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <Mail size={15} className="text-primary-500" /> Contact Info (shown when AI can't find an answer)
+        </h3>
+        <form onSubmit={handleContactSave} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Button Label</label>
+              <input
+                type="text"
+                value={contactSettings.contactLabel}
+                onChange={e => setContactSettings(p => ({ ...p, contactLabel: e.target.value }))}
+                placeholder="Contact Us"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>
+              <input
+                type="email"
+                value={contactSettings.contactEmail}
+                onChange={e => setContactSettings(p => ({ ...p, contactEmail: e.target.value }))}
+                placeholder="support@example.com"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Phone</label>
+              <input
+                type="text"
+                value={contactSettings.contactPhone}
+                onChange={e => setContactSettings(p => ({ ...p, contactPhone: e.target.value }))}
+                placeholder="+1 234 567 890"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Website</label>
+              <input
+                type="url"
+                value={contactSettings.contactWebsite}
+                onChange={e => setContactSettings(p => ({ ...p, contactWebsite: e.target.value }))}
+                placeholder="https://example.com/contact"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-primary-400"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={savingContact}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {savingContact ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+              Save Contact Info
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* How it works */}
